@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+import sys
+
+sh = os.system
+args = sys.argv[1:]
+
+### CONFIG ###
+path_screenshot = '~/screenshots/screen_$(date +%F_%H%M%S).png'
+path_screencast = '/mnt/media/screencast.mkv'
+##############
+
+cfg = '~/.conkyrc-info-panel'
+conky_start  = 'conky -c %s' %cfg
+conky_kill   = 'pkill -f %s' %cfg
+conky_status = 'pgrep -f %s' %cfg
+
+
+# get_mouse_x = "$(xdotool getmouselocation | cut -d ':' -f2 | cut -c1-4)"
+# get_mouse_y = "$(xdotool getmouselocation | cut -d ':' -f3 | cut -c1-4)"
+get_mouse_x = "$(xmousepos | cut -d ' ' -f1)"
+get_mouse_y = "$(xmousepos | cut -d ' ' -f2)"
+
+dzen_menu_mouse = 'dzen2 -x %s -y %s -w 220 -p 2 -l 20 -m v < .dzen-menu-mouse' % (get_mouse_x, get_mouse_y)
+
+mixer = 'amixer -c 1 -- sset Master playback '
+
+
+def shell_switcher(status, do_true, do_false):
+    """Run shell command if the command is true or false"""
+    if os.system(status):
+        os.system(do_true)
+    else:
+        os.system(do_false)
+
+
+def signal_toggle(cmd, sig):
+    return 'pkill -f %s --signal %s' % (cmd, sig)
+
+
+# # info-panel (on/off)
+# if 'conky-info-panel' in args:
+#     ShellSwitch(conky_status, conky_start, conky_kill)
+
+cmd = {'screenshot':                'import ' + path_screenshot,
+       'screenshot_window':         'import -window "$(xdotool getwindowfocus -f) "' + path_screenshot,
+       'screenshot_full':           'import -window root ' + path_screenshot,
+       'screenshot_full_timeout':   'sleep 4; import -window root' + path_screenshot,
+       'screencast':                'urxvt -e ffmpeg -f x11grab -s 1366x768 -i :0.0 -vcodec libx264 ' + path_screencast,
+#       'conky-info-panel':          shell_switcher(conky_status, conky_start, conky_kill),
+       'dzen_menu_mouse':           dzen_menu_mouse,
+       'test':                      'urxvtc -hold -e echo test_test_test',
+       'vol_up':                    mixer + '2dB+',
+       'vol_down':                  mixer + '2dB-',
+        }
+
+for x in args:
+    sh(cmd.get(x))

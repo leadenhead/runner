@@ -3,6 +3,7 @@
 
 import os
 import sys
+import random
 
 sh = os.system
 args = sys.argv[1:]
@@ -28,12 +29,39 @@ dzen_menu_mouse = 'dzen2 -x %s -y %s -w 220 -p 2 -l 20 -m v < .dzen-menu-mouse' 
 mixer = 'amixer -c 1 -- sset Master playback '
 
 
-def shell_switcher(status, do_true, do_false):
+### URXVT ###
+def random_color(min=0, max=255):
+    r = random.randint
+    R = r(min, max)
+    G = r(min, max)
+    B = r(min, max)
+    return R, G, B
+
+
+color_r = '%02x/%02x/%02x' % random_color()
+urxvtc_random = 'urxvtc -bg rgb:%s' % color_r
+#############
+
+#@s
+### SEARCH ENGINE ###
+google = 'https://www.google.ru/search?q='
+yandex = 'https://yandex.ru/search/?text='
+youtube = 'https://www.youtube.com/results?search_query='
+rutracker = 'http://rutracker.org/forum/tracker.php?nm='
+sh_command = 'read -p "google search: " search; firefox --new-tab \'%s\'' % (google + '$search')
+term = "urxvtc -geometry 80x2 -e sh -c '%s; killall -s 18 x-www-brouser iceweasel plugin-container firefox'" % sh_command
+search_yandex = term
+search_rutracker = 'pass'
+# term = "urxvtc -e sh -c '%s'" % 
+print(google)
+#@e
+
+def shell_switcher(status, do_true, do_else):
     """Run shell command if the command is true or false"""
     if os.system(status):
         os.system(do_true)
     else:
-        os.system(do_false)
+        os.system(do_else)
 
 
 def signal_toggle(cmd, sig):
@@ -44,17 +72,24 @@ def signal_toggle(cmd, sig):
 # if 'conky-info-panel' in args:
 #     ShellSwitch(conky_status, conky_start, conky_kill)
 
-cmd = {'screenshot':                'import ' + path_screenshot,
+cmd = {'screenshot':                'import ' + path_screenshot + ' feh ' + path_screenshot,
        'screenshot_window':         'import -window "$(xdotool getwindowfocus -f) "' + path_screenshot,
        'screenshot_full':           'import -window root ' + path_screenshot,
-       'screenshot_full_timeout':   'sleep 4; import -window root' + path_screenshot,
+       'screenshot_full_timeout':   'sleep 4 && import -window root ' + path_screenshot,
        'screencast':                'urxvt -e ffmpeg -f x11grab -s 1366x768 -i :0.0 -vcodec libx264 ' + path_screencast,
+       # TODO: add screencasts: 1.frame record 2.+audio 3.+microphone
 #       'conky-info-panel':          shell_switcher(conky_status, conky_start, conky_kill),
        'dzen_menu_mouse':           dzen_menu_mouse,
        'test':                      'urxvtc -hold -e echo test_test_test',
        'vol_up':                    mixer + '2dB+',
        'vol_down':                  mixer + '2dB-',
+       'yandex':                    search_yandex,
+       'rutracker':                 search_rutracker,
+       'web_open':                  'qweqw',
+       'urxvtc_r':                  urxvtc_random,
         }
 
 for x in args:
     sh(cmd.get(x))
+    # for y in cmd.get(x):
+    #    sh(y)
